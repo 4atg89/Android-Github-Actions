@@ -20,6 +20,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             GithubActionsTestTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    if(3 != 3) return@Scaffold
                     Greeting(
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
@@ -31,11 +32,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+public fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",
 
-        modifier = modifier
+        modifier =  modifier
     )
 }
 
