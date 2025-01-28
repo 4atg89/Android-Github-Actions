@@ -1,0 +1,61 @@
+name: Sign APK/AAB
+
+on:
+  push:
+    branches:
+      - main  # Укажите ветку, на которой будет запускаться workflow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        flavor: [Release]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Decode Keystore
+        env:
+          KEYSTORE_FILE: ${{ secrets.RELEASE_KEYSTORE_FILE }}  # Секрет для release
+        run: echo "$KEYSTORE_FILE" | base64 --decode > my-release-key.jks
+
+      - name: Build APK/AAB
+        run: ./gradlew assemble${{ matrix.flavor }} #Release -> uncomment if there are more matrix
+
+      - name: Sign APK/AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}  # Секрет для release
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}  # Секрет для release
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}  # Секрет для release
+        run: |
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore my-release-key.jks \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEY_PASSWORD" \
+            app/build/outputs/apk/${{ matrix.flavor }}/release/app-${{ matrix.flavor }}-release-unsigned.apk \
+            "$KEY_ALIAS"
+
+      - name: Zipalign APK
+        run: |
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 \  # Используем Build Tools 34
+            app/build/outputs/apk/${{ matrix.flavor }}/release/app-${{ matrix.flavor }}-release-unsigned.apk \
+            app/build/outputs/apk/${{ matrix.flavor }}/release/app-${{ matrix.flavor }}-release-signed.apk
+
+      - name: Upload APK/AAB
+        uses: actions/upload-artifact@v3
+        with:
+          name: signed-apk-${{ matrix.flavor }}
+          path: app/build/outputs/apk/${{ matrix.flavor }}/release/app-${{ matrix.flavor }}-release-signed.apk
