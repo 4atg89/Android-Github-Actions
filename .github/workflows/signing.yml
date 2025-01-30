@@ -39,12 +39,25 @@ jobs:
       - name: build prod
         run: ./gradlew app:bundleRelease
         env:
-          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
           name: Build Artifacts
           path: app/build/outputs/
+
+#          1️⃣ Развернуть .aab в .apk
+#          sh
+#          bundletool build-apks --bundle=app-release.aab --output=app.apks --mode=universal
+#
+#          2️⃣ Разархивировать .apks
+#          sh
+#          unzip app.apks -d output_folder
+#          После этого в папке output_folder будет universal.apk.
+#
+#          3️⃣ Установить .apk на эмулятор
+#          sh
+#          adb install output_folder/universal.apk
