@@ -30,7 +30,11 @@ jobs:
       - name: Decode Keystore
         env:
           KEYSTORE_FILE: ${{ secrets.RELEASE_KEYSTORE_FILE }}  # Секрет для release
-        run: echo "$KEYSTORE_FILE" | base64 --decode > my-release-key.jks
+        run: |
+          echo "$KEYSTORE_FILE"
+          echo "$KEYSTORE_FILE" | base64 --decode > my-release-key.jks
+          ls -lh my-release-key.jks
+          keytool -list -v -keystore my-release-key.jks
 
       - name: Build APK/AAB
         run: ./gradlew assemble${{ matrix.flavor }} #Release -> uncomment if there are more matrix
