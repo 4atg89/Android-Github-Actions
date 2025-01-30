@@ -18,6 +18,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    android {
+        signingConfigs {
+            create("release") {
+                val tmpFilePath = System.getProperty("user.home") + "/work/_temp/keystore/"
+                val allFilesFromDir = File(tmpFilePath).listFiles()
+
+                if (!allFilesFromDir.isNullOrEmpty()) {
+                    val keystoreFile = allFilesFromDir.first()
+                    keystoreFile.renameTo(File("keystore/key-r.jks"))
+                }
+
+                storeFile = file("keystore/key-r.jks")
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
